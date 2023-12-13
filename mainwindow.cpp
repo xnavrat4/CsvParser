@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
+#include <QRegularExpression>
 #include <QStandardPaths>
 
 
@@ -80,13 +81,15 @@ void MainWindow::on_pushButton_2_clicked()
 
     for(const auto &row : data){
         auto newRow = row;
+        /*
         auto firstValue = row.at(1).toDouble();
         auto secondValue = row.at(2).toDouble();
         newRow.replace(1, QString::number(round_up(firstValue, 2),'f',2));
         newRow.replace(2, QString::number(round_up(secondValue, 2),'f',2));
+        */
         auto index = containsZ(row);
         if (index == -1){
-            newRow.replace(3, QString::number(row.at(3).toDouble(),'f',2));
+            newRow.replace(3, QString::number(row.at(3).toDouble(),'f',3));
             newData.append(newRow);
             continue;
         }
@@ -139,8 +142,9 @@ void MainWindow::on_pushButton_2_clicked()
 
 int MainWindow::containsZ(const QList<QString>& stringList) {
     for (int i = 0; i < stringList.size(); ++i) {
-        if (stringList[i].contains("z", Qt::CaseSensitive)) {
-            // "z" found in the string
+        QRegularExpression pattern("[zZ]\\d");
+        if (pattern.match(stringList[i]).hasMatch()) {
+            // "z" found in the
             return i;
         }
     }
