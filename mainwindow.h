@@ -30,5 +30,6 @@ private:
     Ui::MainWindow *ui;
     int containsZ(const QList<QString> &stringList);
     double round_up(double value, int decimal_places);
+    double parseDigitsAsDouble(const QString &input);
 };
 #endif // MAINWINDOW_H

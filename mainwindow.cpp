@@ -81,12 +81,6 @@ void MainWindow::on_pushButton_2_clicked()
 
     for(const auto &row : data){
         auto newRow = row;
-        /*
-        auto firstValue = row.at(1).toDouble();
-        auto secondValue = row.at(2).toDouble();
-        newRow.replace(1, QString::number(round_up(firstValue, 2),'f',2));
-        newRow.replace(2, QString::number(round_up(secondValue, 2),'f',2));
-        */
         auto index = containsZ(row);
         if (index == -1){
             newRow.replace(3, QString::number(row.at(3).toDouble(),'f',3));
@@ -94,21 +88,19 @@ void MainWindow::on_pushButton_2_clicked()
             continue;
         }
 
-
         auto zVal = row.at(index);
-        bool flag;
-        auto numericValue = zVal.remove("z").toDouble(&flag);
-        if (!flag){
-            newRow.replace(3, QString::number(row.at(3).toDouble(),'f',2));
+        auto numericValue = parseDigitsAsDouble(zVal);
+        if (numericValue <= 0){
+            newRow.replace(3, QString::number(row.at(3).toDouble(),'f',3));
             newData.append(newRow);
             continue;
         }
         numericValue /= 100;
-        numericValue = round_up(numericValue, 2);
+        numericValue = round_up(numericValue, 3);
         auto originalValue = row.at(3).toDouble();
         auto newValue = originalValue - numericValue ;
         newValue = round_up(newValue, 2);
-        newRow.replace(3, QString::number(newValue,'f',2));
+        newRow.replace(3, QString::number(newValue,'f',3));
         newRow.replace(index, "z " + QString::number(numericValue));
         newData.append(newRow);
     }
@@ -158,4 +150,19 @@ double MainWindow::round_up(double value, int decimal_places) {
     double roundedValue;
     stream >> roundedValue;
     return roundedValue;
+}
+
+double MainWindow::parseDigitsAsDouble(const QString &input) {
+    QRegularExpression pattern("\\d+");
+    QRegularExpressionMatchIterator matches = pattern.globalMatch(input);
+
+    double result = 0.0;
+
+    while (matches.hasNext()) {
+        QRegularExpressionMatch match = matches.next();
+        QString digitString = match.captured();
+        result += digitString.toDouble();
+    }
+
+    return result;
 }
