@@ -56,7 +56,6 @@ void MainWindow::on_pushButton_2_clicked()
         ui->label->setText("Error opening file:" + file.errorString());
         return;
     }
-
     QList<QList<QString>> data;
 
     // Read and parse the CSV file
@@ -106,7 +105,11 @@ void MainWindow::on_pushButton_2_clicked()
     }
 
     auto filename = m_filePath;
-    auto newFileName = filename.replace(".txt", "-parsed.txt");
+
+    auto fileInfo = new QFileInfo(m_filePath);
+    auto extension = fileInfo->completeSuffix();
+
+    auto newFileName = filename.replace("." + extension, "-parsed." + extension);
     QFile newFile(newFileName);
 
     if (!newFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -166,3 +169,10 @@ double MainWindow::parseDigitsAsDouble(const QString &input) {
 
     return result;
 }
+
+void MainWindow::on_lineEdit_textChanged(const QString &fileName)
+{
+    m_filePath = fileName;
+    ui->lineEdit->setText(m_filePath);
+}
+
