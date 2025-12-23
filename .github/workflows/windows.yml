@@ -73,9 +73,8 @@ jobs:
         working-directory: ${{ env.SOURCE_DIR }}
         run: |
           dir /s /b .
-          qmake -r CsvParser.pro -spec win32-msvc
+          qmake -r CsvParser.pro -spec win32-msvc "OBJECTS_DIR=." "DESTDIR=%RUNNER_TEMP%\release"
           "${{ runner.temp }}\jom\jom" -j2
-          mkdir "${{ runner.temp }}\release"
           copy release\CsvParser.exe "${{ runner.temp }}\release\"
 
           cd "${{ runner.temp }}\release"
