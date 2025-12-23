@@ -29,8 +29,18 @@ jobs:
         working-directory:  ${{ github.workspace }}
         run: |
           git fetch --all --tags -f
+
+      - name: Try to cache the Qt-Installation
+        id: cache-qt
+        uses: actions/cache@v3
+        env: 
+          cache-name: cache-qt
+        with:
+          path: ${{ runner.temp }}\Qt
+          key: ${{ runner.os }}-Qt-${{ env.QT_VERSION }}
           
-      - name: (3) Install Qt
+      - if: ${{ steps.cache-qt.outputs.cache-hit != 'true' }}
+        name: (3) Install Qt
         uses: jurplel/install-qt-action@v4.3.0
         with:
           dir:          ${{ runner.temp }}
