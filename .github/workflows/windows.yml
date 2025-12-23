@@ -72,8 +72,8 @@ jobs:
       - name: (8) Build
       
         working-directory: ${{ runner.temp }}\build
-        run:  |
-              dir /s
+        run:  |          
+              dir /s /b "${{ env.SOURCE_DIR }}"
               qmake -d -r ${{ env.SOURCE_DIR }}\CsvParser.pro
               ${{ runner.temp }}\jom\jom -j2
               copy release\CsvParser.exe ${{ runner.temp }}\release 
