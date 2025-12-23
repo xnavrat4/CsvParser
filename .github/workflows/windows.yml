@@ -12,7 +12,7 @@ defaults:
 
 env:
   SOURCE_DIR:   ${{ github.workspace }}
-  QT_VERSION:   6.5.2
+  QT_VERSION:   6.2.0
   ARTIFACT:     csv-parser.zip
 
 jobs:
@@ -26,6 +26,7 @@ jobs:
           submodules: recursive
 
       - name: (2) Get all tags for correct version determination
+        working-directory:  ${{ github.workspace }}
         run: |
           git fetch --all --tags -f
 
@@ -55,7 +56,10 @@ jobs:
           target: ${{ runner.temp }}\
 
       - name: (5) Unzip JOM
-        run: 7z x ${{ runner.temp }}\jom.zip -ojom
+        working-directory: ${{ runner.temp }}
+        run:  |
+              7z x jom.zip -ojom
+              
 
       - name: (6) Create directories
         run: |
@@ -67,13 +71,6 @@ jobs:
         uses: egor-tensin/vs-shell@v2
         with:
           arch: x64
-
-      - name: (7.5) Clean qmake cache
-        run: |
-          if exist ${{ runner.temp }}\build (
-            rmdir /s /q ${{ runner.temp }}\build
-          )
-          mkdir ${{ runner.temp }}\build
 
       - name: (8) Build
         working-directory: ${{ runner.temp }}\build
