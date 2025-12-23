@@ -86,7 +86,7 @@ jobs:
             "DESTDIR=%RUNNER_TEMP%\release"
 
           :: Build with jom
-          "%RUNNER_TEMP%\jom\jom.exe" -j2
+          ${{ runner.temp }}\jom\jom.exe -j2
 
           :: List all build files for debugging
           dir /s /b
