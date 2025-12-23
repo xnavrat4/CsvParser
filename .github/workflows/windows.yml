@@ -18,7 +18,7 @@ env:
 jobs:
   build:
     runs-on:  windows-2019
-    permissions: write-all
+    permissions: write
     steps:
       - name: (1) Checkout repo
         uses: actions/checkout@v2
@@ -73,6 +73,7 @@ jobs:
       
         working-directory: ${{ runner.temp }}\build
         run:  |
+              dir /s
               qmake -d -r ${{ env.SOURCE_DIR }}\CsvParser.pro
               ${{ runner.temp }}\jom\jom -j2
               copy release\CsvParser.exe ${{ runner.temp }}\release 
