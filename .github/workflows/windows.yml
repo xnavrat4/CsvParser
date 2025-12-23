@@ -17,7 +17,7 @@ env:
 
 jobs:
   build:
-    runs-on:  windows-2019
+    runs-on: windows-2019
     permissions: write-all
     steps:
       - name: (1) Checkout repo
@@ -26,77 +26,81 @@ jobs:
           submodules: recursive
 
       - name: (2) Get all tags for correct version determination
-        working-directory:  ${{ github.workspace }}
         run: |
           git fetch --all --tags -f
 
-      - name: Try to cache the Qt-Installation
+      - name: Cache Qt Installation
         id: cache-qt
         uses: actions/cache@v3
-        env: 
-          cache-name: cache-qt
         with:
           path: ${{ runner.temp }}\Qt
           key: ${{ runner.os }}-Qt-${{ env.QT_VERSION }}
-          
+
       - if: ${{ steps.cache-qt.outputs.cache-hit != 'true' }}
         name: (3) Install Qt
         uses: jurplel/install-qt-action@v4.3.0
         with:
-          dir:          ${{ runner.temp }}
-          version:      ${{ env.QT_VERSION }}
-          host:         windows
-          arch:         win64_msvc2019_64
-          modules:      all
+          dir: ${{ runner.temp }}
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          arch: win64_msvc2019_64
+          modules: all
           setup-python: false
-          tools:   tools_ifw tools_qtcreator,qt.tools.qtcreator
+          tools: tools_ifw tools_qtcreator,qt.tools.qtcreator
 
       - name: (4) Download JOM
         uses: suisei-cn/actions-download-file@v1
         with:
-          url:    http://download.qt.io/official_releases/jom/jom.zip
+          url: http://download.qt.io/official_releases/jom/jom.zip
           target: ${{ runner.temp }}\
 
       - name: (5) Unzip JOM
-        working-directory: ${{ runner.temp }}
-        run:  |
-              7z x jom.zip -ojom
-              
+        run: 7z x ${{ runner.temp }}\jom.zip -ojom
+
       - name: (6) Create directories
-        run: |  
-             mkdir ${{ runner.temp }}\build
-             mkdir ${{ runner.temp }}\release
-             mkdir ${{ runner.temp }}\install
+        run: |
+          mkdir ${{ runner.temp }}\build
+          mkdir ${{ runner.temp }}\release
+          mkdir ${{ runner.temp }}\install
 
       - name: (7) Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
         with:
           arch: x64
-          
+
       - name: (7.5) Clean qmake cache
         run: |
-           if exist ${{ runner.temp }}\build (
-             rmdir /s /q ${{ runner.temp }}\build
-           )
-           mkdir ${{ runner.temp }}\build
-           
-      - name: (8) Build
+          if exist ${{ runner.temp }}\build (
+            rmdir /s /q ${{ runner.temp }}\build
+          )
+          mkdir ${{ runner.temp }}\build
+
+      - name: (8) Build with qmake and jom
         working-directory: ${{ runner.temp }}\build
         run: |
-          set PATH=%PATH%;..\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin
-          cd "%SOURCE_DIR%"
-          qmake -r CsvParser.pro -spec win32-msvc
-          ${{ runner.temp }}\jom\jom -j2
-          dir /s /b ${{ runner.temp }}\build
-          echo "=== Deploying Qt runtime ==="
-          cd "${{ runner.temp }}\release"
-          windeployqt --qmldir ${{ env.SOURCE_DIR }} CsvParser.exe --release --compiler-runtime
+          set PATH=%PATH%;%RUNNER_TEMP%\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin
 
+          :: Run qmake from build folder, set OBJECTS_DIR and DESTDIR
+          "%RUNNER_TEMP%\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin\qmake.exe" "%SOURCE_DIR%\CsvParser.pro" -r -spec win32-msvc ^
+            "OBJECTS_DIR=%CD%\obj" ^
+            "DESTDIR=%RUNNER_TEMP%\release"
+
+          :: Build with jom
+          "%RUNNER_TEMP%\jom\jom.exe" -j2
+
+          :: List all build files for debugging
+          dir /s /b
+
+          :: Deploy Qt runtime
+          cd "%RUNNER_TEMP%\release"
+          "%RUNNER_TEMP%\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin\windeployqt.exe" CsvParser.exe --release --compiler-runtime
+
+          :: Copy MSVC runtime DLLs
           copy C:\Windows\System32\concrt140.dll .
           copy C:\Windows\System32\vccorlib140.dll .
           copy C:\Windows\System32\msvcp140.dll .
           copy C:\Windows\System32\vcruntime140.dll .
-          
+
       - name: (9) Zip application folder
         working-directory: ${{ runner.temp }}
         run: |
