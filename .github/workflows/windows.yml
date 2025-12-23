@@ -84,35 +84,22 @@ jobs:
               copy C:\Windows\System32\vcruntime140.dll .
               cd ${{ runner.temp }}
               
-      - name: (9) Create release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: (9) Zip application folder
+        working-directory: ${{ runner.temp }}
+        run: |
+          7z a csv-parser.zip ${{ runner.temp }}\release\* -r
+
+      - name: (10) Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: ${{ runner.temp }}\csv-parser.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-          
-          
-      - name: (10) Zip application folder
-        working-directory: ${{ runner.temp }}
-        run:  |
-              7z a csv-parser.zip ${{ runner.temp }}\release\* -r
 
       - name: (11) Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: release
           path: ${{ runner.temp }}\csv-parser.zip
-
-      - name: (12) Upload release zip
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ runner.temp }}\csv-parser.zip
-          asset_name: csv-parser.zip
-          asset_content_type: application/zip
