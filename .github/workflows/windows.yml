@@ -18,7 +18,7 @@ env:
 jobs:
   build:
     runs-on:  windows-2019
-    permissions: write
+    permissions: write-all
     steps:
       - name: (1) Checkout repo
         uses: actions/checkout@v2
