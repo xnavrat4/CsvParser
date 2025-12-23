@@ -31,7 +31,7 @@ jobs:
           git fetch --all --tags -f
           
       - name: (3) Install Qt
-        uses: jurplel/install-qt-action@v3.3.0
+        uses: jurplel/install-qt-action@v4.3.0
         with:
           dir:          ${{ runner.temp }}
           version:      ${{ env.QT_VERSION }}
