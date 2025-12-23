@@ -72,9 +72,18 @@ jobs:
       - name: (8) Build
         working-directory: ${{ env.SOURCE_DIR }}
         run: |
-          dir /s /b .
-          qmake -r CsvParser.pro -spec win32-msvc "OBJECTS_DIR=." "DESTDIR=%RUNNER_TEMP%\release"
-          "${{ runner.temp }}\jom\jom" -j2
+          :: Change to the build folder
+          cd "%RUNNER_TEMP%\build"
+
+          :: Run qmake pointing at your .pro
+          :: OBJECTS_DIR ensures obj files go here
+          :: DESTDIR ensures CsvParser.exe goes to release
+          qmake "%SOURCE_DIR%\CsvParser.pro" -r -spec win32-msvc ^
+            "OBJECTS_DIR=%RUNNER_TEMP%\build\obj" ^
+            "DESTDIR=%RUNNER_TEMP%\release"
+
+          echo "=== Running build ==="
+          "%RUNNER_TEMP%\jom\jom" -j2
           copy release\CsvParser.exe "${{ runner.temp }}\release\"
 
           cd "${{ runner.temp }}\release"
