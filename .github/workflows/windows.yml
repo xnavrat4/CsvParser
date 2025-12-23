@@ -82,27 +82,23 @@ jobs:
       - name: (8) Build
         working-directory: ${{ env.SOURCE_DIR }}
         run: |
-          :: Change to the build folder
-          cd "%RUNNER_TEMP%\build"
+              cd "%RUNNER_TEMP%\build"
+              echo "=== Running qmake ==="
+              qmake "${{ env.SOURCE_DIR }}\CsvParser.pro" -r -spec win32-msvc ^
+                "OBJECTS_DIR=." ^
+                "DESTDIR=%RUNNER_TEMP%\release"
 
-          :: Run qmake pointing at your .pro
-          :: OBJECTS_DIR ensures obj files go here
-          :: DESTDIR ensures CsvParser.exe goes to release
-          qmake "%SOURCE_DIR%\CsvParser.pro" -r -spec win32-msvc ^
-            "OBJECTS_DIR=%RUNNER_TEMP%\build\obj" ^
-            "DESTDIR=%RUNNER_TEMP%\release"
+              echo "=== Running jom ==="
+              "%RUNNER_TEMP%\jom\jom" -j2
 
-          echo "=== Running build ==="
-          "%RUNNER_TEMP%\jom\jom" -j2
-          copy release\CsvParser.exe "${{ runner.temp }}\release\"
+              echo "=== Deploying Qt runtime ==="
+              cd "${{ runner.temp }}\release"
+              windeployqt --qmldir ${{ env.SOURCE_DIR }} CsvParser.exe --release --compiler-runtime
 
-          cd "${{ runner.temp }}\release"
-          windeployqt --qmldir "${{ env.SOURCE_DIR }}" CsvParser.exe --release --compiler-runtime
-
-          copy C:\Windows\System32\concrt140.dll .
-          copy C:\Windows\System32\vccorlib140.dll .
-          copy C:\Windows\System32\msvcp140.dll .
-          copy C:\Windows\System32\vcruntime140.dll .
+              copy C:\Windows\System32\concrt140.dll .
+              copy C:\Windows\System32\vccorlib140.dll .
+              copy C:\Windows\System32\msvcp140.dll .
+              copy C:\Windows\System32\vcruntime140.dll .
           
       - name: (9) Zip application folder
         working-directory: ${{ runner.temp }}
