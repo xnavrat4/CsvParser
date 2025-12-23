@@ -1,13 +1,17 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
+#include <QMimeData>
+#include <QRegularExpression>
 #include <QStandardPaths>
+#include <QDropEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setAcceptDrops(true);
 }
 
 MainWindow::~MainWindow()
@@ -115,4 +119,30 @@ void MainWindow::on_lineEdit_textChanged(const QString &fileName)
 {
     m_filePath = fileName;
     ui->lineEdit->setText(m_filePath);
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
+    if (event->mimeData()->hasUrls()) {
+        event->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent* event)
+{
+    const QMimeData* mimeData = event->mimeData();
+
+    // check for our needed mime type, here a file or a list of files
+    if (mimeData->hasUrls())
+    {
+        QStringList pathList;
+        QList<QUrl> urlList = mimeData->urls();
+
+        // extract the local paths of the files
+        for (int i = 0; i < urlList.size(); i++)
+        {
+            on_lineEdit_textChanged(urlList.at(i).toLocalFile());
+        }
+
+        // call a function to open the files
+    }
 }
