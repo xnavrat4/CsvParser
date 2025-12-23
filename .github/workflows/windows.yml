@@ -75,31 +75,19 @@ jobs:
           )
           mkdir ${{ runner.temp }}\build
 
-      - name: (8) Build with qmake and jom
+      - name: (8) Build
         working-directory: ${{ runner.temp }}\build
-        run: |
-          set PATH=%PATH%;%RUNNER_TEMP%\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin
-
-          :: Run qmake from build folder, set OBJECTS_DIR and DESTDIR
-          "%RUNNER_TEMP%\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin\qmake.exe" "%SOURCE_DIR%\CsvParser.pro" -r -spec win32-msvc ^
-            "OBJECTS_DIR=%CD%\obj" ^
-            "DESTDIR=%RUNNER_TEMP%\release"
-
-          :: Build with jom
-          ${{ runner.temp }}\jom\jom.exe -j2
-
-          :: List all build files for debugging
-          dir /s /b
-
-          :: Deploy Qt runtime
-          cd "%RUNNER_TEMP%\release"
-          "%RUNNER_TEMP%\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin\windeployqt.exe" CsvParser.exe --release --compiler-runtime
-
-          :: Copy MSVC runtime DLLs
-          copy C:\Windows\System32\concrt140.dll .
-          copy C:\Windows\System32\vccorlib140.dll .
-          copy C:\Windows\System32\msvcp140.dll .
-          copy C:\Windows\System32\vcruntime140.dll .
+        run:  |
+              qmake -r ${{ env.SOURCE_DIR }}\CsvParser.pro
+              ${{ runner.temp }}\jom\jom -j2
+              copy release\CsvParser.exe ${{ runner.temp }}\release 
+              cd ${{ runner.temp }}\release
+              windeployqt --qmldir ${{ env.SOURCE_DIR }} CsvParser.exe --release --compiler-runtime
+              copy C:\Windows\System32\concrt140.dll . 
+              copy C:\Windows\System32\vccorlib140.dll .
+              copy C:\Windows\System32\msvcp140.dll .
+              copy C:\Windows\System32\vcruntime140.dll .
+              cd ${{ runner.temp }}
 
       - name: (9) Zip application folder
         working-directory: ${{ runner.temp }}
