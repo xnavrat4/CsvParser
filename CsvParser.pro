@@ -12,11 +12,11 @@ CONFIG += warn_on
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    csvparserservice.cpp
+    services/csvparserservice.cpp
 
 HEADERS += \
     mainwindow.h \
-    csvparserservice.h
+    services/csvparserservice.h
 
 FORMS += \
     mainwindow.ui

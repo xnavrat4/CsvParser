@@ -5,7 +5,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QFileInfo>
-#include "csvparserservice.h"
+#include "services/csvparserservice.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
