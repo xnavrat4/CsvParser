@@ -2,6 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFile>
+#include <QTextStream>
+#include <QFileInfo>
+#include "csvparserservice.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -10,9 +14,6 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
-    QString m_filePath;
-    QMap<int, int> m_spaceCount = {{1, 14}, {2, 3}, {3, 3}, {4,2}};
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -23,15 +24,19 @@ public:
 
 private slots:
     void on_pushButton_clicked();
-
     void on_pushButton_2_clicked();
-
-    void on_lineEdit_textChanged(const QString &arg1);
+    void on_lineEdit_textChanged(const QString &fileName);
 
 private:
     Ui::MainWindow *ui;
-    int containsZ(const QList<QString> &stringList);
-    double round_up(double value, int decimal_places);
-    double parseDigitsAsDouble(const QString &input);
+    QString m_filePath;
+    CsvParserService m_processorService;
+
+    // File I/O methods
+    QList<QList<QString>> readCsvFile(const QString& filePath);
+    void writeProcessedFile(const QString& originalPath,
+                            const QList<QList<QString>>& data);
+    QString generateOutputFilePath(const QString& originalPath);
 };
+
 #endif // MAINWINDOW_H

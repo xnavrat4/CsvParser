@@ -1,9 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
-#include <QRegularExpression>
 #include <QStandardPaths>
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -17,7 +15,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
 void MainWindow::on_pushButton_clicked()
 {
     QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
@@ -29,7 +26,6 @@ void MainWindow::on_pushButton_clicked()
         );
 
     if (!fileName.isEmpty()) {
-        // File was selected
         m_filePath = fileName;
         ui->lineEdit->setText(m_filePath);
     } else {
@@ -50,124 +46,69 @@ void MainWindow::setFilePath(const QString &newFilePath)
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    QFile file(m_filePath);
+    QList<QList<QString>> data = readCsvFile(m_filePath);
+    if (data.isEmpty()) {
+        return; // Error already displayed in readCsvFile
+    }
+
+    QList<QList<QString>> processedData = m_processorService.processData(data);
+    writeProcessedFile(m_filePath, processedData);
+}
+
+QList<QList<QString>> MainWindow::readCsvFile(const QString& filePath)
+{
+    QList<QList<QString>> data;
+    QFile file(filePath);
 
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        ui->label->setText("Error opening file:" + file.errorString());
-        return;
+        ui->label->setText("Error opening file: " + file.errorString());
+        return data;
     }
-    QList<QList<QString>> data;
 
-    // Read and parse the CSV file
     QTextStream in(&file);
     while (!in.atEnd()) {
         QString line = in.readLine();
-        QStringList fields = line.split(' ');
-
-        auto newRow = QList<QString>();
-        // Process the fields as needed
-        for (const QString& field : fields) {
-            if (!field.isEmpty()){
-                newRow.append(field);
-            }
-        }
-        data.append(newRow);
+        QStringList fields = line.split(' ', Qt::SkipEmptyParts);
+        data.append(fields.toVector().toList());
     }
 
     file.close();
+    return data;
+}
 
-    QList<QList<QString>> newData;
+QString MainWindow::generateOutputFilePath(const QString& originalPath)
+{
+    QFileInfo fileInfo(originalPath);
+    QString baseName = fileInfo.completeBaseName();
+    QString extension = fileInfo.completeSuffix();
+    QString dirPath = fileInfo.absolutePath();
 
-    for(const auto &row : data){
-        auto newRow = row;
-        auto index = containsZ(row);
-        if (index == -1){
-            newRow.replace(3, QString::number(row.at(3).toDouble(),'f',3));
-            newData.append(newRow);
-            continue;
-        }
+    return dirPath + "/" + baseName + "-parsed." + extension;
+}
 
-        auto zVal = row.at(index);
-        auto numericValue = parseDigitsAsDouble(zVal);
-        if (numericValue <= 0){
-            newRow.replace(3, QString::number(row.at(3).toDouble(),'f',3));
-            newData.append(newRow);
-            continue;
-        }
-        numericValue /= 100;
-        numericValue = round_up(numericValue, 3);
-        auto originalValue = row.at(3).toDouble();
-        auto newValue = originalValue - numericValue ;
-        newValue = round_up(newValue, 2);
-        newRow.replace(3, QString::number(newValue,'f',3));
-        newRow.replace(index, "z " + QString::number(numericValue));
-        newData.append(newRow);
-    }
+void MainWindow::writeProcessedFile(const QString& originalPath,
+                                    const QList<QList<QString>>& data)
+{
+    QString outputPath = generateOutputFilePath(originalPath);
+    QFile file(outputPath);
 
-    auto filename = m_filePath;
-
-    auto fileInfo = new QFileInfo(m_filePath);
-    auto extension = fileInfo->completeSuffix();
-
-    auto newFileName = filename.replace("." + extension, "-parsed." + extension);
-    QFile newFile(newFileName);
-
-    if (!newFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        ui->label->setText("Error opening new file:" + newFile.errorString());
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        ui->label->setText("Error opening new file: " + file.errorString());
         return;
     }
 
-    QTextStream out(&newFile);
+    QTextStream out(&file);
 
-    // Write each string in the list to the file
-    for (const auto& innerList : newData) {
-        QString line;
-        for (int i = 0; i < innerList.size(); ++i) {
-            if (i < 4){
-                line.append(innerList.at(i) + QString(' '));
-                continue;
-            }
-            line.append(innerList.at(i) + QString(i == innerList.size() - 1  ? "\n" : " "));
+    for (const auto& row : data) {
+        QStringList rowData;
+        for (int i = 0; i < row.size(); ++i) {
+            rowData.append(row.at(i));
         }
-        out << line; // Write each string followed by a newline
-    }
-    newFile.close();
-
-}
-
-int MainWindow::containsZ(const QList<QString>& stringList) {
-    for (int i = 0; i < stringList.size(); ++i) {
-        QRegularExpression pattern("[zZ]\\d");
-        if (pattern.match(stringList[i]).hasMatch()) {
-            // "z" found in the
-            return i;
-        }
-    }
-    // No string with "z" found
-    return -1;
-}
-
-double MainWindow::round_up(double value, int decimal_places) {
-    std::stringstream stream;
-    stream << std::fixed << std::setprecision(decimal_places) << value;
-    double roundedValue;
-    stream >> roundedValue;
-    return roundedValue;
-}
-
-double MainWindow::parseDigitsAsDouble(const QString &input) {
-    QRegularExpression pattern("\\d+");
-    QRegularExpressionMatchIterator matches = pattern.globalMatch(input);
-
-    double result = 0.0;
-
-    while (matches.hasNext()) {
-        QRegularExpressionMatch match = matches.next();
-        QString digitString = match.captured();
-        result += digitString.toDouble();
+        out << rowData.join(' ') << '\n';
     }
 
-    return result;
+    file.close();
+    ui->label->setText("File processed successfully: " + outputPath);
 }
 
 void MainWindow::on_lineEdit_textChanged(const QString &fileName)
@@ -175,4 +116,3 @@ void MainWindow::on_lineEdit_textChanged(const QString &fileName)
     m_filePath = fileName;
     ui->lineEdit->setText(m_filePath);
 }
-
