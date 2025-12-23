@@ -84,21 +84,18 @@ jobs:
         working-directory: ${{ runner.temp }}\build
         run: |
           set PATH=%PATH%;..\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin
-              cd "%RUNNER_TEMP%\build"
-              echo "=== Running qmake ==="
-              qmake ${{ env.SOURCE_DIR }}\CsvParser.pro -r -spec win32-msvc ^
-                "OBJECTS_DIR=." ^
-                "DESTDIR=%RUNNER_TEMP%\release"
-              ${{ runner.temp }}\jom\jom -j2
+          cd "%SOURCE_DIR%"
+          qmake -r CsvParser.pro -spec win32-msvc
+          ${{ runner.temp }}\jom\jom -j2
+          dir /s /b ${{ runner.temp }}\build
+          echo "=== Deploying Qt runtime ==="
+          cd "${{ runner.temp }}\release"
+          windeployqt --qmldir ${{ env.SOURCE_DIR }} CsvParser.exe --release --compiler-runtime
 
-              echo "=== Deploying Qt runtime ==="
-              cd "${{ runner.temp }}\release"
-              windeployqt --qmldir ${{ env.SOURCE_DIR }} CsvParser.exe --release --compiler-runtime
-
-              copy C:\Windows\System32\concrt140.dll .
-              copy C:\Windows\System32\vccorlib140.dll .
-              copy C:\Windows\System32\msvcp140.dll .
-              copy C:\Windows\System32\vcruntime140.dll .
+          copy C:\Windows\System32\concrt140.dll .
+          copy C:\Windows\System32\vccorlib140.dll .
+          copy C:\Windows\System32\msvcp140.dll .
+          copy C:\Windows\System32\vcruntime140.dll .
           
       - name: (9) Zip application folder
         working-directory: ${{ runner.temp }}
