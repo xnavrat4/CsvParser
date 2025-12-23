@@ -79,17 +79,17 @@ jobs:
              rmdir /s /q ${{ runner.temp }}\build
            )
            mkdir ${{ runner.temp }}\build
+           
       - name: (8) Build
-        working-directory: ${{ env.SOURCE_DIR }}
+        working-directory: ${{ runner.temp }}\build
         run: |
+          set PATH=%PATH%;..\Qt\${{ env.QT_VERSION }}\msvc2019_64\bin
               cd "%RUNNER_TEMP%\build"
               echo "=== Running qmake ==="
-              qmake "${{ env.SOURCE_DIR }}\CsvParser.pro" -r -spec win32-msvc ^
+              qmake ${{ env.SOURCE_DIR }}\CsvParser.pro -r -spec win32-msvc ^
                 "OBJECTS_DIR=." ^
                 "DESTDIR=%RUNNER_TEMP%\release"
-
-              echo "=== Running jom ==="
-              "%RUNNER_TEMP%\jom\jom" -j2
+              ${{ runner.temp }}\jom.exe -j2
 
               echo "=== Deploying Qt runtime ==="
               cd "${{ runner.temp }}\release"
