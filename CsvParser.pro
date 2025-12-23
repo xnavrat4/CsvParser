@@ -10,16 +10,16 @@ CONFIG += warn_on
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    $$PWD/csvparserservice.cpp \
-    $$PWD/main.cpp \
-    $$PWD/mainwindow.cpp
+    csvparserservice.cpp \
+    main.cpp \
+    mainwindow.cpp
 
 HEADERS += \
-    $$PWD/csvparserservice.h \
-    $$PWD/mainwindow.h
+    csvparserservice.h \
+    mainwindow.h
 
 FORMS += \
-    $$PWD/mainwindow.ui
+    mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
