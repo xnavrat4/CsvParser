@@ -62,7 +62,7 @@ QList<QList<QString>> CsvParserService::processData(const QList<QList<QString>>&
 // Z index can be adjusted by point description starting with z and digit (e.g. z10)
 int CsvParserService::containsZAdjustmentValue(const QList<QString>& stringList)
 {
-    QRegularExpression pattern("[zZ]\\d");
+    QRegularExpression pattern("(?<![a-zA-Z])[zZ]\\d");
 
     for (int i = 0; i < stringList.size(); ++i) {
         if (pattern.match(stringList[i]).hasMatch()) {
