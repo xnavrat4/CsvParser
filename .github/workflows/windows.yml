@@ -89,7 +89,7 @@ jobs:
               qmake ${{ env.SOURCE_DIR }}\CsvParser.pro -r -spec win32-msvc ^
                 "OBJECTS_DIR=." ^
                 "DESTDIR=%RUNNER_TEMP%\release"
-              ${{ runner.temp }}\jom.exe -j2
+              ${{ runner.temp }}\jom\jom -j2
 
               echo "=== Deploying Qt runtime ==="
               cd "${{ runner.temp }}\release"
