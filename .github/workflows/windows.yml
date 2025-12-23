@@ -70,21 +70,22 @@ jobs:
            )
            mkdir ${{ runner.temp }}\build
       - name: (8) Build
-      
-        working-directory: ${{ runner.temp }}\build
-        run:  |          
-              dir /s /b "${{ env.SOURCE_DIR }}"
-              qmake -d -r ${{ env.SOURCE_DIR }}\CsvParser.pro
-              ${{ runner.temp }}\jom\jom -j2
-              copy release\CsvParser.exe ${{ runner.temp }}\release 
-              cd ${{ runner.temp }}\release
-              windeployqt --qmldir ${{ env.SOURCE_DIR }} CsvParser.exe --release --compiler-runtime
-              copy C:\Windows\System32\concrt140.dll . 
-              copy C:\Windows\System32\vccorlib140.dll .
-              copy C:\Windows\System32\msvcp140.dll .
-              copy C:\Windows\System32\vcruntime140.dll .
-              cd ${{ runner.temp }}
-              
+        working-directory: ${{ env.SOURCE_DIR }}
+        run: |
+          dir /s /b .
+          qmake -r CsvParser.pro -spec win32-msvc
+          "${{ runner.temp }}\jom\jom" -j2
+          mkdir "${{ runner.temp }}\release"
+          copy release\CsvParser.exe "${{ runner.temp }}\release\"
+
+          cd "${{ runner.temp }}\release"
+          windeployqt --qmldir "${{ env.SOURCE_DIR }}" CsvParser.exe --release --compiler-runtime
+
+          copy C:\Windows\System32\concrt140.dll .
+          copy C:\Windows\System32\vccorlib140.dll .
+          copy C:\Windows\System32\msvcp140.dll .
+          copy C:\Windows\System32\vcruntime140.dll .
+          
       - name: (9) Zip application folder
         working-directory: ${{ runner.temp }}
         run: |
