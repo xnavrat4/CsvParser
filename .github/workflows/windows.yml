@@ -73,7 +73,7 @@ jobs:
       
         working-directory: ${{ runner.temp }}\build
         run:  |
-              qmake -d -r -fresh ${{ env.SOURCE_DIR }}\CsvParser.pro
+              qmake -d -r ${{ env.SOURCE_DIR }}\CsvParser.pro
               ${{ runner.temp }}\jom\jom -j2
               copy release\CsvParser.exe ${{ runner.temp }}\release 
               cd ${{ runner.temp }}\release
