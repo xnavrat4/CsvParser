@@ -62,8 +62,15 @@ jobs:
         uses: egor-tensin/vs-shell@v2
         with:
           arch: x64
-
+          
+      - name: (7.5) Clean qmake cache
+        run: |
+           if exist ${{ runner.temp }}\build (
+             rmdir /s /q ${{ runner.temp }}\build
+           )
+           mkdir ${{ runner.temp }}\build
       - name: (8) Build
+      
         working-directory: ${{ runner.temp }}\build
         run:  |
               qmake -r ${{ env.SOURCE_DIR }}\CsvParser.pro
